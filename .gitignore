@@ -1,0 +1,36 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+build/
+
+# Logs e cache
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.yarn/cache
+.npm
+.eslintcache
+
+# Variáveis de ambiente (se usar)
+.env
+.env.local
+.env.*.local
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Vite
+*.local
+
+# TypeScript
+*.tsbuildinfo
