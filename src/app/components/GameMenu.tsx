@@ -11,8 +11,9 @@ export function GameMenu({ onStart, volume, onChangeVolume }: Props) {
   const [showButton, setShowButton] = useState(false);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
 
+  // Título faz fade-in; depois de ~2.5s o botão Iniciar aparece
   useEffect(() => {
-    const timer = setTimeout(() => setShowButton(true), 3500);
+    const timer = setTimeout(() => setShowButton(true), 2500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -123,6 +124,15 @@ export function GameMenu({ onStart, volume, onChangeVolume }: Props) {
             <div className="flower-stem" />
           </div>
         ))}
+      </div>
+
+      {/* Título do jogo: fade-in + flutuação suave */}
+      <div className="menu-title-wrap">
+        <img
+          src="/TítuloPrincipal.png"
+          alt="Doces Memórias da Ale"
+          className="menu-title-image"
+        />
       </div>
 
       {/* Controlo de volume (apenas no menu inicial) */}

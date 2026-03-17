@@ -180,6 +180,68 @@
   }
 }
 
+/* Título do jogo (centro do ecrã) */
+.menu-title-wrap {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  animation: titleFadeIn 2s ease-out forwards;
+}
+
+.menu-title-image {
+  display: block;
+  max-width: min(85vw, 520px);
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  animation: titleFloat 4s ease-in-out infinite;
+}
+
+@media (min-width: 768px) {
+  .menu-title-image {
+    max-width: min(80vw, 680px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .menu-title-image {
+    max-width: min(75vw, 860px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .menu-title-image {
+    max-width: min(70vw, 1000px);
+  }
+}
+
+@media (min-width: 1600px) {
+  .menu-title-image {
+    max-width: min(65vw, 1200px);
+  }
+}
+
+@keyframes titleFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes titleFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 /* Botão de início */
 .start-button {
   position: absolute;
