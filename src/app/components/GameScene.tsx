@@ -506,6 +506,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
   const eKeyWasDownRef = useRef(false);
   const mobileControlsRef = useRef(mobileControls);
   const itemMusicRef = useRef<HTMLAudioElement | null>(null);
+  const overlayIsMusicRef = useRef(false);
 
   useEffect(() => {
     mobileControlsRef.current = mobileControls;
@@ -527,12 +528,14 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
   // Quando overlay é música: pausar BGM, estado de dança. No toque o áudio já foi iniciado no handler (itemMusicRef); na tecla E criamos aqui.
   useEffect(() => {
     if (overlay?.type !== 'music') {
+      overlayIsMusicRef.current = false;
       if (gRef.current) {
         gRef.current.player.isDancing = false;
         gRef.current.player.danceTime = 0;
       }
       return;
     }
+    overlayIsMusicRef.current = true;
     if (bgmRef.current) bgmRef.current.pause();
     if (gRef.current) {
       gRef.current.player.isDancing = true;
@@ -547,6 +550,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
       itemMusicRef.current = audio;
     }
     return () => {
+      overlayIsMusicRef.current = false;
       if (itemMusicRef.current) {
         itemMusicRef.current.pause();
         itemMusicRef.current = null;
@@ -1179,15 +1183,27 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
     } else if (item.type === 'image' && item.imageUrl) {
       onInteractTriggerRef.current({ type: 'image', imageUrl: item.imageUrl, title: item.imageTitle, date: item.imageDate });
     } else if (item.type === 'music' && item.audioUrl) {
+      // Se já está a tocar música (overlay ativo), toque de novo = parar
+      if (overlayIsMusicRef.current) {
+        onInteractTriggerRef.current(null);
+        return;
+      }
+      // Evitar múltiplos inícios (ex.: pointerUp + touchEnd no mesmo toque)
+      if (itemMusicRef.current) return;
       // No mobile o play() tem de ser no gesto do toque; criar e dar play aqui, depois setOverlay
       const audio = new Audio(item.audioUrl);
       audio.volume = 0.6;
       itemMusicRef.current = audio;
+      if (gRef.current) {
+        gRef.current.player.isDancing = true;
+        gRef.current.player.danceTime = 0;
+      }
       audio.addEventListener('ended', () => onInteractTriggerRef.current(null));
       audio.play().then(() => {
         onInteractTriggerRef.current({ type: 'music', audioUrl: item.audioUrl! });
       }).catch(() => {
         itemMusicRef.current = null;
+        if (gRef.current) gRef.current.player.isDancing = false;
       });
     }
   }, [getClientXY]);
