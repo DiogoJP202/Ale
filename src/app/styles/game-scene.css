@@ -14,6 +14,15 @@
   image-rendering: crisp-edges;
 }
 
+/* Overlay para toque em itens (mobile): fica acima da dica, abaixo dos botões */
+.game-tap-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: auto;
+  touch-action: none;
+}
+
 /* HUD - informações na tela */
 .game-hud {
   position: absolute;
@@ -22,7 +31,7 @@
   transform: translateX(-50%);
   display: flex;
   gap: 16px;
-  z-index: 10;
+  z-index: 20;
   pointer-events: none;
 }
 
@@ -68,7 +77,7 @@
   font-family: monospace;
   font-size: 14px;
   cursor: pointer;
-  z-index: 10;
+  z-index: 20;
   transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
   letter-spacing: 1px;
 }
@@ -94,6 +103,7 @@
   animation: hintFadeOut 1s ease-in-out 4s forwards;
 }
 
+
 .hint-row {
   color: #c4a8d8;
   font-family: monospace;
@@ -116,7 +126,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0 24px;
-  z-index: 10;
+  z-index: 20;
   pointer-events: none;
 }
 

@@ -487,9 +487,10 @@ function drawInteractiveItem(
 interface Props {
   onBackToMenu: () => void;
   volume: number;
+  mobileControls: boolean;
 }
 
-export function GameScene({ onBackToMenu, volume }: Props) {
+export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gRef      = useRef<GameData | null>(null);
   const keysRef   = useRef<Record<string, boolean>>({});
@@ -503,6 +504,11 @@ export function GameScene({ onBackToMenu, volume }: Props) {
   const [overlay, setOverlay] = useState<OverlayState>(null);
   const onInteractTriggerRef = useRef<(payload: OverlayState) => void>(() => {});
   const eKeyWasDownRef = useRef(false);
+  const mobileControlsRef = useRef(mobileControls);
+
+  useEffect(() => {
+    mobileControlsRef.current = mobileControls;
+  }, [mobileControls]);
 
   // Fechar overlay com Escape
   useEffect(() => {
@@ -1093,9 +1099,9 @@ export function GameScene({ onBackToMenu, volume }: Props) {
         ctx.fillRect(0, 0, cW, cH);
       }
 
-      // 14) Hint "Pressione E para interagir"
+      // 14) Hint interagir (E ou toque conforme modo)
       if (g.nearItemId) {
-        const txt = 'Pressione E para interagir';
+        const txt = mobileControlsRef.current ? 'Toque no item para interagir' : 'Pressione E para interagir';
         ctx.font = '14px monospace';
         const tw = ctx.measureText(txt).width;
         const bx = (cW - tw) / 2 - 12;
@@ -1129,10 +1135,72 @@ export function GameScene({ onBackToMenu, volume }: Props) {
     };
   }, []);
 
+  // Clique do rato OU toque: interagir com item (quando mobile controls ativado)
+  const getClientXY = useCallback((e: React.PointerEvent<HTMLElement> | React.MouseEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => {
+    if ('pointerType' in e) return { x: (e as React.PointerEvent).clientX, y: (e as React.PointerEvent).clientY };
+    if ('touches' in e) {
+      const t = (e as React.TouchEvent).changedTouches?.[0] ?? (e as React.TouchEvent).touches?.[0];
+      return t ? { x: t.clientX, y: t.clientY } : null;
+    }
+    return { x: (e as React.MouseEvent).clientX, y: (e as React.MouseEvent).clientY };
+  }, []);
+
+  const handleTapOrClick = useCallback((e: React.PointerEvent<HTMLElement> | React.MouseEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => {
+    if (!mobileControlsRef.current) return;
+    const canvas = canvasRef.current;
+    const g = gRef.current;
+    if (!canvas || !g) return;
+    const coords = getClientXY(e);
+    if (!coords) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (coords.x - rect.left) * scaleX;
+    const clickY = (coords.y - rect.top) * scaleY;
+    const cW = canvas.width, cH = canvas.height;
+    // Mesma transformação do render: view (0,0) = canto do canvas, world (wx,wy) desenhado em ((wx-camX)*ZOOM, (wy-camY)*ZOOM)
+    const worldX = clickX / CAMERA_ZOOM + g.camX;
+    const worldY = clickY / CAMERA_ZOOM + g.camY;
+    const TAP_RADIUS = 90;
+    let nearestId: string | null = null;
+    let nearestDist = TAP_RADIUS;
+    for (const it of g.interactiveItems) {
+      const dx = worldX - it.x, dy = worldY - it.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearestId = it.id;
+      }
+    }
+    if (!nearestId) return;
+    const item = g.interactiveItems.find(i => i.id === nearestId)!;
+    if (item.type === 'message' && item.message) {
+      onInteractTriggerRef.current({ type: 'message', content: item.message });
+    } else if (item.type === 'image' && item.imageUrl) {
+      onInteractTriggerRef.current({ type: 'image', imageUrl: item.imageUrl, title: item.imageTitle, date: item.imageDate });
+    } else if (item.type === 'music' && item.audioUrl) {
+      onInteractTriggerRef.current({ type: 'music', audioUrl: item.audioUrl });
+    }
+  }, [getClientXY]);
+
   // ─── JSX ──────────────────────────────────
   return (
     <div className="game-wrapper">
       <canvas ref={canvasRef} className="game-canvas" />
+
+      {/* Overlay invisível para toque em itens (só quando mobile controls ativo); z-index 12, botões em 20 */}
+      {mobileControls && (
+        <div
+          className="game-tap-overlay"
+          onPointerUp={handleTapOrClick}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            handleTapOrClick(e);
+          }}
+          role="presentation"
+          aria-hidden
+        />
+      )}
 
       {/* HUD */}
       <div className="game-hud">
@@ -1148,12 +1216,58 @@ export function GameScene({ onBackToMenu, volume }: Props) {
         ← Sair
       </button>
 
+      {/* Controles mobile: esquerda, direita, pulo */}
+      {mobileControls && (
+        <div className="mobile-controls">
+          <div className="dpad">
+            <button
+              type="button"
+              className="dpad-btn"
+              aria-label="Mover esquerda"
+              onPointerDown={(e) => { e.preventDefault(); touchRef.current.left = true; }}
+              onPointerUp={(e) => { e.preventDefault(); touchRef.current.left = false; }}
+              onPointerLeave={(e) => { e.preventDefault(); touchRef.current.left = false; }}
+              onPointerCancel={(e) => { e.preventDefault(); touchRef.current.left = false; }}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              className="dpad-btn"
+              aria-label="Mover direita"
+              onPointerDown={(e) => { e.preventDefault(); touchRef.current.right = true; }}
+              onPointerUp={(e) => { e.preventDefault(); touchRef.current.right = false; }}
+              onPointerLeave={(e) => { e.preventDefault(); touchRef.current.right = false; }}
+              onPointerCancel={(e) => { e.preventDefault(); touchRef.current.right = false; }}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              →
+            </button>
+          </div>
+          <div className="jump-dpad">
+            <button
+              type="button"
+              className="dpad-btn jump-btn"
+              aria-label="Pular"
+              onPointerDown={(e) => { e.preventDefault(); touchRef.current.jump = true; }}
+              onPointerUp={(e) => { e.preventDefault(); touchRef.current.jump = false; touchRef.current.jumpHeld = false; }}
+              onPointerLeave={(e) => { e.preventDefault(); touchRef.current.jump = false; touchRef.current.jumpHeld = false; }}
+              onPointerCancel={(e) => { e.preventDefault(); touchRef.current.jump = false; touchRef.current.jumpHeld = false; }}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              ↑
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Controls hint */}
       {showHint && (
         <div className="controls-hint">
           <div className="hint-row">← → / A D &nbsp; para mover</div>
           <div className="hint-row">↑ / W / Espaço &nbsp; para pular</div>
-          <div className="hint-row">E &nbsp; para interagir com itens</div>
+          <div className="hint-row">{mobileControls ? 'Toque no item para interagir' : 'E &nbsp; para interagir com itens'}</div>
           <div className="hint-row" style={{ color: '#a78bfa', marginTop: 4 }}>
             Colete todas as flores dama-da-noite ✿
           </div>

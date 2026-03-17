@@ -242,6 +242,104 @@
   }
 }
 
+/* Controlos do menu — cantos inferiores, acima do título e do botão */
+.menu-controls-bottom-left {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.menu-controls-bottom-right {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.menu-volume-box {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(7, 3, 26, 0.9);
+  border: 1px solid rgba(167, 139, 250, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-volume-label {
+  color: #e8d5f0;
+  font-size: 12px;
+}
+
+.menu-volume-slider {
+  width: 100px;
+}
+
+/* Switch “Usar botões na tela” */
+.menu-switch-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(7, 3, 26, 0.9);
+  border: 1px solid rgba(167, 139, 250, 0.7);
+  color: #e8d5f0;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.menu-switch-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(61, 38, 99, 0.8);
+  border: 2px solid #5a3a8a;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.menu-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+  transition: transform 0.2s ease;
+}
+
+.menu-switch-input:checked + .menu-switch-track::after {
+  transform: translateX(20px);
+}
+
+.menu-switch-input:checked + .menu-switch-track {
+  background: rgba(61, 38, 99, 0.95);
+  border-color: #a78bfa;
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.3);
+}
+
+.menu-switch-text {
+  flex-shrink: 0;
+}
+
 /* Botão de início */
 .start-button {
   position: absolute;

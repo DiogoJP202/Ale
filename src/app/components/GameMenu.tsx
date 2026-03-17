@@ -5,9 +5,11 @@ interface Props {
   onStart: () => void;
   volume: number;
   onChangeVolume: (value: number) => void;
+  mobileControls: boolean;
+  onMobileControlsChange: (enabled: boolean) => void;
 }
 
-export function GameMenu({ onStart, volume, onChangeVolume }: Props) {
+export function GameMenu({ onStart, volume, onChangeVolume, mobileControls, onMobileControlsChange }: Props) {
   const [showButton, setShowButton] = useState(false);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
 
@@ -135,31 +137,34 @@ export function GameMenu({ onStart, volume, onChangeVolume }: Props) {
         />
       </div>
 
-      {/* Controlo de volume (apenas no menu inicial) */}
-      <div
-        style={{
-          position: "absolute",
-          top: 24,
-          right: 24,
-          padding: "8px 12px",
-          borderRadius: 999,
-          background: "rgba(7,3,26,0.8)",
-          border: "1px solid rgba(167,139,250,0.7)",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <span style={{ color: "#e8d5f0", fontSize: 12 }}>Volume</span>
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.05}
-          value={volume}
-          onChange={(e) => onChangeVolume(parseFloat(e.target.value))}
-          style={{ width: 100 }}
-        />
+      {/* Opção de botões no celular — canto inferior esquerdo */}
+      <div className="menu-controls-bottom-left">
+        <label className="menu-switch-label">
+          <input
+            type="checkbox"
+            className="menu-switch-input"
+            checked={mobileControls}
+            onChange={(e) => onMobileControlsChange(e.target.checked)}
+          />
+          <span className="menu-switch-track" aria-hidden />
+          <span className="menu-switch-text">Usar botões na tela (celular)</span>
+        </label>
+      </div>
+
+      {/* Volume — canto inferior direito */}
+      <div className="menu-controls-bottom-right">
+        <div className="menu-volume-box">
+          <span className="menu-volume-label">Volume</span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={volume}
+            onChange={(e) => onChangeVolume(parseFloat(e.target.value))}
+            className="menu-volume-slider"
+          />
+        </div>
       </div>
 
       {/* Botão de início */}
