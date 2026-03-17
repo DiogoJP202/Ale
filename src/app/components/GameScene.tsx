@@ -505,6 +505,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
   const onInteractTriggerRef = useRef<(payload: OverlayState) => void>(() => {});
   const eKeyWasDownRef = useRef(false);
   const mobileControlsRef = useRef(mobileControls);
+  const itemMusicRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     mobileControlsRef.current = mobileControls;
@@ -523,7 +524,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [overlay]);
 
-  // Tocar MP3 quando interagir com item de música (pausa a música principal enquanto toca)
+  // Quando overlay é música: pausar BGM, estado de dança. No toque o áudio já foi iniciado no handler (itemMusicRef); na tecla E criamos aqui.
   useEffect(() => {
     if (overlay?.type !== 'music') {
       if (gRef.current) {
@@ -532,26 +533,25 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
       }
       return;
     }
-    // Pausar música principal enquanto a do item toca
-    if (bgmRef.current) {
-      bgmRef.current.pause();
-    }
-    const audio = new Audio(overlay.audioUrl);
-    audio.volume = 0.6;
-    audio.play().catch(() => setOverlay(null));
-    const onEnded = () => setOverlay(null);
-    audio.addEventListener('ended', onEnded);
+    if (bgmRef.current) bgmRef.current.pause();
     if (gRef.current) {
       gRef.current.player.isDancing = true;
       gRef.current.player.danceTime = 0;
     }
+    let audio: HTMLAudioElement | null = itemMusicRef.current;
+    if (!audio) {
+      audio = new Audio(overlay.audioUrl);
+      audio.volume = 0.6;
+      audio.addEventListener('ended', () => setOverlay(null));
+      audio.play().catch(() => setOverlay(null));
+      itemMusicRef.current = audio;
+    }
     return () => {
-      audio.pause();
-      audio.removeEventListener('ended', onEnded);
-      // Retomar música principal quando a do item parar
-      if (bgmRef.current) {
-        bgmRef.current.play().catch(() => {});
+      if (itemMusicRef.current) {
+        itemMusicRef.current.pause();
+        itemMusicRef.current = null;
       }
+      if (bgmRef.current) bgmRef.current.play().catch(() => {});
     };
   }, [overlay]);
 
@@ -1179,7 +1179,16 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
     } else if (item.type === 'image' && item.imageUrl) {
       onInteractTriggerRef.current({ type: 'image', imageUrl: item.imageUrl, title: item.imageTitle, date: item.imageDate });
     } else if (item.type === 'music' && item.audioUrl) {
-      onInteractTriggerRef.current({ type: 'music', audioUrl: item.audioUrl });
+      // No mobile o play() tem de ser no gesto do toque; criar e dar play aqui, depois setOverlay
+      const audio = new Audio(item.audioUrl);
+      audio.volume = 0.6;
+      itemMusicRef.current = audio;
+      audio.addEventListener('ended', () => onInteractTriggerRef.current(null));
+      audio.play().then(() => {
+        onInteractTriggerRef.current({ type: 'music', audioUrl: item.audioUrl! });
+      }).catch(() => {
+        itemMusicRef.current = null;
+      });
     }
   }, [getClientXY]);
 

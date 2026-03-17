@@ -13,6 +13,16 @@ export function GameMenu({ onStart, volume, onChangeVolume, mobileControls, onMo
   const [showButton, setShowButton] = useState(false);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
 
+  // No mobile: ao entrar no menu, rolar para baixo para mostrar título, botão e controlos
+  useEffect(() => {
+    const scrollToBottom = () => {
+      window.scrollTo(0, document.documentElement.scrollHeight);
+    };
+    scrollToBottom();
+    const t = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(t);
+  }, []);
+
   // Título faz fade-in; depois de ~2.5s o botão Iniciar aparece
   useEffect(() => {
     const timer = setTimeout(() => setShowButton(true), 2500);
