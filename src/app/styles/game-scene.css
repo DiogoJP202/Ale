@@ -188,7 +188,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(7, 3, 26, 0.7);
-  z-index: 20;
+  z-index: 30;
   animation: overlayIn 0.8s ease-out;
 }
 
@@ -292,7 +292,7 @@
   to   { opacity: 1; }
 }
 
-/* Overlay de itens interativos (mensagem / imagem) */
+/* Overlay de itens interativos (mensagem / imagem) — acima do HUD e dos botões */
 .interact-overlay {
   position: absolute;
   inset: 0;
@@ -300,7 +300,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(7, 3, 26, 0.75);
-  z-index: 18;
+  z-index: 30;
   animation: overlayIn 0.25s ease-out;
 }
 
@@ -392,7 +392,99 @@
   font-family: monospace;
   font-size: 16px;
   letter-spacing: 2px;
-  z-index: 19;
+  z-index: 28;
   animation: overlayIn 0.2s ease-out;
   pointer-events: none;
+}
+
+/* ─── Mobile: overlay de imagens dentro da tela e botões maiores ─── */
+@media (max-width: 768px) {
+  .interact-overlay {
+    align-items: flex-start;
+    padding: 12px 0 80px;
+    overflow-y: auto;
+  }
+
+  .interact-box {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 100px);
+    padding: 16px 20px;
+    margin: auto 12px;
+    overflow-y: auto;
+  }
+
+  .interact-image {
+    padding: 12px 8px;
+  }
+
+  .interact-image-title {
+    font-size: 16px;
+    margin: 0 0 8px;
+  }
+
+  .interact-image-date {
+    font-size: 13px;
+    margin: 8px 0 0;
+  }
+
+  .interact-img {
+    max-width: min(320px, calc(100vw - 48px));
+    max-height: 50vh;
+  }
+
+  .interact-close {
+    margin-top: 4px;
+    min-height: 48px;
+    padding: 12px 24px;
+  }
+
+  /* Botões de controlo mobile maiores */
+  .mobile-controls {
+    padding: 0 16px;
+    bottom: 20px;
+  }
+
+  .dpad-btn {
+    width: 72px;
+    height: 72px;
+    font-size: 26px;
+  }
+
+  .dpad {
+    gap: 12px;
+  }
+
+  .jump-btn {
+    width: 80px;
+    height: 80px;
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .interact-box {
+    padding: 12px 16px;
+    margin: auto 8px;
+  }
+
+  .interact-img {
+    max-width: min(280px, calc(100vw - 32px));
+    max-height: 45vh;
+  }
+
+  .interact-image-title {
+    font-size: 15px;
+  }
+
+  .dpad-btn {
+    width: 80px;
+    height: 80px;
+    font-size: 28px;
+  }
+
+  .jump-btn {
+    width: 88px;
+    height: 88px;
+    font-size: 32px;
+  }
 }

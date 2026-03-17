@@ -200,6 +200,13 @@
   animation: titleFloat 4s ease-in-out infinite;
 }
 
+/* Mobile: título mais para cima */
+@media (max-width: 768px) {
+  .menu-title-wrap {
+    top: 32%;
+  }
+}
+
 @media (min-width: 768px) {
   .menu-title-image {
     max-width: min(80vw, 680px);
@@ -381,6 +388,16 @@
   box-shadow: 
     0 0 10px rgba(232, 213, 240, 0.4),
     inset 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile: botão Iniciar menor e mais para cima (depois das regras base para override) */
+@media (max-width: 768px) {
+  .start-button {
+    top: 60%;
+    padding: 10px 28px;
+    font-size: 16px;
+    border-width: 3px;
+  }
 }
 
 @keyframes buttonGlow {
