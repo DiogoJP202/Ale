@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { GameMenu } from "./components/GameMenu";
 import { GameScene } from "./components/GameScene";
+import { InstallPrompt } from "./components/InstallPrompt";
 
 const STORAGE_MOBILE_CONTROLS = "campo-iluminado-mobile-controls";
 
@@ -25,6 +26,13 @@ export default function App() {
     setMobileControls(readMobileControls());
   }, []);
 
+  // Registrar service worker para o jogo ser instalável (PWA)
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }, []);
+
   const handleMobileControlsChange = (enabled: boolean) => {
     setMobileControls(enabled);
     try {
@@ -34,6 +42,7 @@ export default function App() {
 
   return (
     <div className="size-full">
+      <InstallPrompt />
       {screen === "menu" ? (
         <GameMenu
           onStart={() => setScreen("game")}
