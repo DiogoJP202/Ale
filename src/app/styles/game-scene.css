@@ -256,6 +256,7 @@
   padding: 48px 32px 56px;
   overflow-y: auto;
   pointer-events: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .completion-credits-wrap .completion-btn-bottom {
@@ -278,6 +279,17 @@
   max-width: min(680px, 90%);
   white-space: pre-wrap;
   word-wrap: break-word;
+  animation: completionTextFadeIn 1.4s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes completionTextFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .completion-cursor {
@@ -295,6 +307,47 @@
 .completion-btn-bottom {
   margin-top: 24px;
   flex-shrink: 0;
+  animation: completionTextFadeIn 0.8s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+/* Mobile: texto final mais responsivo e legível */
+@media (max-width: 768px) {
+  .completion-credits-wrap {
+    padding: max(24px, 5dvh) max(20px, 5vw) max(40px, 8dvh);
+    justify-content: safe center;
+  }
+
+  .completion-credits-text {
+    font-size: clamp(14px, 3.8vw, 18px);
+    line-height: 1.7;
+    max-width: min(92%, 640px);
+    margin-bottom: max(24px, 4dvh);
+    padding: 0 4px;
+  }
+
+  .completion-btn-bottom {
+    margin-top: max(16px, 3dvh);
+    padding: 12px 28px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .completion-credits-wrap {
+    padding: max(20px, 4dvh) max(16px, 4vw) max(32px, 6dvh);
+  }
+
+  .completion-credits-text {
+    font-size: clamp(13px, 4vw, 16px);
+    line-height: 1.65;
+    max-width: 94%;
+  }
+
+  .completion-btn-bottom {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
 }
 
 @keyframes overlayIn {
@@ -410,8 +463,8 @@
 }
 
 .interact-box {
-  max-width: 90vw;
-  max-height: 85vh;
+  max-width: min(90vw, 520px);
+  max-height: min(85vh, 85dvh);
   padding: 28px 36px;
   background: rgba(13, 6, 32, 0.98);
   border: 4px solid #7c3aed;
@@ -423,6 +476,7 @@
   align-items: center;
   gap: 20px;
   animation: boxPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-height: 0;
 }
 
 .interact-message .interact-text {
@@ -460,11 +514,15 @@
 }
 
 .interact-img {
+  width: 100%;
   max-width: min(400px, 85vw);
-  max-height: 60vh;
+  height: auto;
+  max-height: min(60vh, 58dvh);
   object-fit: contain;
   border: 3px solid #5a3a8a;
   box-shadow: 0 0 16px rgba(90, 58, 138, 0.5);
+  flex-shrink: 1;
+  min-height: 0;
 }
 
 .interact-close {
@@ -502,22 +560,23 @@
   pointer-events: none;
 }
 
-/* ─── Mobile: overlay de imagens dentro da tela e botões maiores ─── */
+/* ─── Mobile: overlay de imagens adaptado à tela, menos conflito vertical ─── */
 @media (max-width: 768px) {
   .interact-overlay {
     align-items: flex-start;
-    padding: 8px 0 24px;
+    padding: max(8px, 2dvh) 0 max(24px, 6dvh);
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
     -webkit-overflow-scrolling: touch;
+    justify-content: safe center;
   }
 
   .interact-box {
-    max-width: calc(100vw - 24px);
-    max-height: min(85vh, calc(100dvh - 80px));
-    padding: 12px 16px;
-    margin: 0 12px 12px;
+    max-width: min(calc(100vw - 20px), 420px);
+    max-height: min(88dvh, 90svh, calc(100dvh - 40px));
+    padding: max(12px, 2.5dvh) max(16px, 4vw);
+    margin: 0 auto max(12px, 3dvh);
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
@@ -526,27 +585,36 @@
   }
 
   .interact-image {
-    padding: 8px 6px;
+    padding: max(8px, 1.5dvh) 6px;
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
 
   .interact-image-title {
-    font-size: 15px;
+    font-size: clamp(14px, 3.8vw, 16px);
     margin: 0 0 6px;
     line-height: 1.3;
+    flex-shrink: 0;
   }
 
   .interact-image-date {
-    font-size: 12px;
+    font-size: clamp(11px, 2.8vw, 13px);
     margin: 6px 0 0;
+    flex-shrink: 0;
   }
 
   .interact-img {
-    max-width: min(320px, calc(100vw - 48px));
-    max-height: min(45vh, 40dvh);
+    max-width: min(100%, calc(100vw - 40px));
+    max-height: min(52dvh, 55svh, 50vh);
+    width: auto;
+    align-self: center;
   }
 
   .interact-close {
-    margin-top: 6px;
+    margin-top: max(6px, 1.5dvh);
     min-height: 44px;
     padding: 10px 20px;
     flex-shrink: 0;
@@ -577,31 +645,31 @@
 
 @media (max-width: 480px) {
   .interact-overlay {
-    padding: 6px 0 16px;
+    padding: max(6px, 1.5dvh) 0 max(16px, 4dvh);
   }
 
   .interact-box {
-    max-height: min(82vh, calc(100dvh - 60px));
-    padding: 10px 12px;
-    margin: 0 8px 8px;
+    max-height: min(86dvh, 88svh, calc(100dvh - 32px));
+    padding: max(10px, 2dvh) max(12px, 3vw);
+    margin: 0 auto max(8px, 2dvh);
   }
 
   .interact-image {
-    padding: 6px 4px;
+    padding: max(6px, 1dvh) 4px;
   }
 
   .interact-image-title {
-    font-size: 14px;
+    font-size: clamp(13px, 3.5vw, 15px);
     margin: 0 0 4px;
   }
 
   .interact-image-date {
-    font-size: 11px;
+    font-size: clamp(11px, 2.5vw, 12px);
   }
 
   .interact-img {
-    max-width: min(260px, calc(100vw - 32px));
-    max-height: min(38vh, 35dvh);
+    max-width: min(100%, calc(100vw - 28px));
+    max-height: min(48dvh, 50svh, 46vh);
   }
 
   .interact-close {
@@ -622,28 +690,28 @@
   }
 }
 
-/* Telas muito pequenas: imagem ainda mais contida */
+/* Telas muito pequenas: imagem proporcional à viewport */
 @media (max-width: 360px) {
   .interact-overlay {
-    padding: 4px 0 12px;
+    padding: max(4px, 1dvh) 0 max(12px, 3dvh);
   }
 
   .interact-box {
-    max-height: min(78vh, calc(100dvh - 50px));
-    padding: 8px 10px;
-    margin: 0 6px 6px;
+    max-height: min(84dvh, 86svh, calc(100dvh - 24px));
+    padding: max(8px, 1.5dvh) max(10px, 2.5vw);
+    margin: 0 auto max(6px, 1.5dvh);
   }
 
   .interact-img {
-    max-width: min(240px, calc(100vw - 28px));
-    max-height: min(32vh, 28dvh);
+    max-width: min(100%, calc(100vw - 24px));
+    max-height: min(44dvh, 46svh, 42vh);
   }
 
   .interact-image-title {
-    font-size: 13px;
+    font-size: clamp(12px, 3.2vw, 14px);
   }
 
   .interact-image-date {
-    font-size: 11px;
+    font-size: clamp(10px, 2.4vw, 11px);
   }
 }

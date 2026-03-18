@@ -31,7 +31,14 @@ const INTERACT_DIST = 56;
 
 /** Mensagem final (estilo créditos) ao completar o jogo */
 const COMPLETION_MESSAGE =
-  'Obrigado por estar comigo mesmo nos momentos chatos e difíceis. Obrigado por sempre confiar em mim, mesmo nesse mundo tão falso. Obrigado por me ajudar, mesmo não sendo sua obrigação. Você está fazendo niver hoje, mas foi eu que recebeu o maior presente no dia que te conheci, sempre sempre e sempre vou agradecer por ter ido falar com você naquele momento da faculdade. Te amo muito Le, espero que possa contar comigo para tudo, assim como conto com você! Te desejo tudo que há de melhor nesse mundo, parabéns por completar mais um verão!';
+  `
+  Obrigado por estar ao meu lado, até nos momentos mais difíceis e chatos. Obrigado por confiar em mim, mesmo em um mundo tão incerto. Obrigado por me ajudar, mesmo quando não era sua obrigação.
+
+  Hoje é o seu aniversário, mas quem ganhou o maior presente fui eu, no dia em que te conheci. Sempre vou agradecer por ter tido coragem de falar com você naquele momento na faculdade, acho que isso mudou muita coisa na minha vida kkkkk.
+
+  Te amo muito, Le. Espero que você saiba que pode contar comigo para tudo, assim como eu conto com você.
+
+  Te desejo tudo de melhor que esse mundo pode oferecer. Parabéns por mais um ano de vida e que venham muitos outros incríveis pela frente.`;
 
 // ─────────────────────────────────────────────
 //  COLOUR PALETTE
