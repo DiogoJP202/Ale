@@ -525,6 +525,9 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
   const itemMusicRef = useRef<HTMLAudioElement | null>(null);
   const overlayIsMusicRef = useRef(false);
   const completionVideoRef = useRef<HTMLVideoElement | null>(null);
+  const completionCreditsWrapRef = useRef<HTMLDivElement | null>(null);
+  /** Momento em que a tela de conclusão apareceu (para delay de 7s antes do auto-scroll) */
+  const completionStartTimeRef = useRef<number>(0);
 
   useEffect(() => {
     mobileControlsRef.current = mobileControls;
@@ -536,6 +539,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
       setCompletionVisibleChars(0);
       return;
     }
+    completionStartTimeRef.current = Date.now();
     setCompletionVisibleChars(0);
     const len = COMPLETION_MESSAGE.length;
     const interval = setInterval(() => {
@@ -543,6 +547,22 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
     }, 58);
     return () => clearInterval(interval);
   }, [ui.phase]);
+
+  // Rolagem automática após 7s: acompanha o texto enquanto vai surgindo (mobile)
+  useEffect(() => {
+    if (ui.phase !== 'complete') return;
+    const wrap = completionCreditsWrapRef.current;
+    if (!wrap) return;
+    const elapsed = Date.now() - completionStartTimeRef.current;
+    if (elapsed < 7000) return;
+    const scrollToBottom = () => {
+      wrap.scrollTo({
+        top: wrap.scrollHeight - wrap.clientHeight,
+        behavior: 'smooth',
+      });
+    };
+    requestAnimationFrame(() => requestAnimationFrame(scrollToBottom));
+  }, [completionVisibleChars, ui.phase]);
 
   // Vídeo final: tocar com áudio e volume um pouco mais alto
   useEffect(() => {
@@ -1397,7 +1417,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
               playsInline
             />
             <div className="completion-video-text-overlay" aria-hidden />
-            <div className="completion-credits-wrap">
+            <div ref={completionCreditsWrapRef} className="completion-credits-wrap">
               <p className="completion-credits-text">
                 {COMPLETION_MESSAGE.slice(0, completionVisibleChars)}
                 {completionVisibleChars < COMPLETION_MESSAGE.length && (
