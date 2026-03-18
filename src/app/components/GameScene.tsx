@@ -6,6 +6,8 @@ import '../styles/game-scene.css';
 // ─────────────────────────────────────────────
 const GRAVITY      = 0.44;
 const JUMP_FORCE   = -10.8;
+/** Força do segundo pulo (pulo duplo), em % do primeiro */
+const DOUBLE_JUMP_FACTOR = 0.75;
 const PLAYER_SPEED = 3.6;
 const WORLD_WIDTH  = 5200;
 /** Hitbox de colisão (mais apertada; o sprite 128x128 tem margens transparentes). */
@@ -26,6 +28,10 @@ const GAME_KEYS = new Set([
 ]);
 
 const INTERACT_DIST = 56;
+
+/** Mensagem final (estilo créditos) ao completar o jogo */
+const COMPLETION_MESSAGE =
+  'Obrigado por estar comigo mesmo nos momentos chatos e difíceis. Obrigado por sempre confiar em mim, mesmo nesse mundo tão falso. Obrigado por me ajudar, mesmo não sendo sua obrigação. Você está fazendo niver hoje, mas foi eu que recebeu o maior presente no dia que te conheci, sempre sempre e sempre vou agradecer por ter ido falar com você naquele momento da faculdade. Te amo muito Le, espero que possa contar comigo para tudo, assim como conto com você! Te desejo tudo que há de melhor nesse mundo, parabéns por completar mais um verão!';
 
 // ─────────────────────────────────────────────
 //  COLOUR PALETTE
@@ -58,6 +64,8 @@ interface PlayerState {
   x: number; y: number; vx: number; vy: number;
   onGround: boolean; facing: 1|-1;
   walkPhase: number; jumpHeld: boolean;
+  /** Pulo duplo: true = pode dar o segundo pulo no ar */
+  canDoubleJump: boolean;
   /** Animação de dança quando pega item de música */
   isDancing: boolean;
   danceTime: number;
@@ -500,6 +508,8 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
 
   const [ui, setUi] = useState({ collected: 0, total: 0, phase: 'playing' as 'playing'|'complete' });
   const [showHint, setShowHint] = useState(true);
+  /** Número de caracteres visíveis da mensagem final (efeito typewriter) */
+  const [completionVisibleChars, setCompletionVisibleChars] = useState(0);
   type OverlayState = { type: 'message'; content: string } | { type: 'image'; imageUrl: string; title?: string; date?: string } | { type: 'music'; audioUrl: string } | null;
   const [overlay, setOverlay] = useState<OverlayState>(null);
   const onInteractTriggerRef = useRef<(payload: OverlayState) => void>(() => {});
@@ -507,10 +517,35 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
   const mobileControlsRef = useRef(mobileControls);
   const itemMusicRef = useRef<HTMLAudioElement | null>(null);
   const overlayIsMusicRef = useRef(false);
+  const completionVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     mobileControlsRef.current = mobileControls;
   }, [mobileControls]);
+
+  // Efeito typewriter na mensagem final (quando completa o jogo)
+  useEffect(() => {
+    if (ui.phase !== 'complete') {
+      setCompletionVisibleChars(0);
+      return;
+    }
+    setCompletionVisibleChars(0);
+    const len = COMPLETION_MESSAGE.length;
+    const interval = setInterval(() => {
+      setCompletionVisibleChars((n) => (n >= len ? len : n + 1));
+    }, 58);
+    return () => clearInterval(interval);
+  }, [ui.phase]);
+
+  // Vídeo final: tocar com áudio e volume um pouco mais alto
+  useEffect(() => {
+    if (ui.phase !== 'complete') return;
+    const video = completionVideoRef.current;
+    if (video) {
+      video.volume = 1;
+      video.play().catch(() => {});
+    }
+  }, [ui.phase]);
 
   // Fechar overlay com Escape
   useEffect(() => {
@@ -578,12 +613,11 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
     };
   }, []);
 
-  // Atualizar volume quando o valor vindo do menu mudar
+  // Atualizar volume quando o valor vindo do menu mudar; na tela final, BGM bem mais baixo
   useEffect(() => {
-    if (bgmRef.current) {
-      bgmRef.current.volume = volume;
-    }
-  }, [volume]);
+    if (!bgmRef.current) return;
+    bgmRef.current.volume = ui.phase === 'complete' ? 0.03 : volume;
+  }, [volume, ui.phase]);
 
   // ─── INITIALISE ───────────────────────────
   useEffect(() => {
@@ -672,18 +706,19 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
       onGround: false,
       facing: 1,
       walkPhase: 0, jumpHeld: false,
+      canDoubleJump: true,
       isDancing: false, danceTime: 0,
     };
 
     // Itens interativos espalhados pelo cenário (mensagem, imagem das memórias, música)
     const interactiveItems: InteractiveItem[] = [
-      { id: 'msg1', x: 420,  y: groundY - 24, type: 'message', message: 'As flores dama-da-noite só abrem à noite. Que sorte a nossa!', glowPhase: 0 },
+      { id: 'msg1', x: 420,  y: groundY - 24, type: 'message', message: 'As flores dama-da-noite só abrem à noite, porém hoje, elas estão abertas para comemorar algo especial!', glowPhase: 0 },
       { id: 'img1', x: 920,  y: groundY - 24, type: 'image', imageUrl: '/Memorias/Alezinha01.jpeg', imageTitle: 'Drip Incalculável', imageDate: '16/10/2025', glowPhase: 1.2 },
       { id: 'mus1', x: 1380, y: groundY - 24, type: 'music', audioUrl: '/Musicas/DragPath.mp3', glowPhase: 2.1 },
-      { id: 'msg2', x: 1920, y: groundY - 24, type: 'message', message: 'A lua ilumina o campo. Continue coletando as flores!', glowPhase: 0.5 },
+      { id: 'msg2', x: 1920, y: groundY - 24, type: 'message', message: 'A lua ilumina o campo, tal como você ilumina todos a sua volta.', glowPhase: 0.5 },
       { id: 'img2', x: 2620, y: groundY - 24, type: 'image', imageUrl: '/Memorias/Alezinha02.jpeg', imageTitle: 'Jantar', imageDate: '16/11/2024', glowPhase: 3 },
       { id: 'mus2', x: 3280, y: groundY - 24, type: 'music', audioUrl: '/Musicas/Drum Show.mp3', glowPhase: 1.8 },
-      { id: 'msg3', x: 3980, y: groundY - 24, type: 'message', message: 'Quase lá! O campo está ficando lindo de novo.', glowPhase: 0.9 },
+      { id: 'd3', x: 3980, y: groundY - 24, type: 'message', message: 'Obrigado por estar aqui agora, e obrigado por sempre estar.', glowPhase: 0.9 },
       { id: 'img3', x: 4580, y: groundY - 24, type: 'image', imageUrl: '/Memorias/Alezinha03.jpeg', imageTitle: 'Fugueira', imageDate: '26/07/2025', glowPhase: 2.5 },
       { id: 'img4', x: 5100, y: groundY - 24, type: 'image', imageUrl: '/Memorias/Alezinha09.jpeg', imageTitle: 'Toda ouvidos', imageDate: '18/08/2025', glowPhase: 1.5 },
     ];
@@ -698,7 +733,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
         type,
         glowPhase: i * 0.7,
       };
-      if (type === 'message') item.message = ['Um vento suave passa pelo campo.', 'As estrelas observam você.', 'Pule com cuidado!'][i % 3];
+      if (type === 'message') item.message = ['Um vento suave passa pelo campo, e as flores dançam junto.', 'As estrelas observam você.', 'Pule com cuidado!'][i % 3];
       if (type === 'image') {
         item.imageUrl = ['/Memorias/Alezinha04.jpeg', '/Memorias/Alezinha05.jpeg', '/Memorias/Alezinha06.jpeg', '/Memorias/Alezinha07.jpeg', '/Memorias/Alezinha08.jpeg'][i % 5];
         const platImagetexts = ['Tamo de Zoio', 'Dá até aula', 'Rainha do SQL', 'Like no vídeo', 'Actually'];
@@ -779,7 +814,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
     });
 
     setUi({ collected: 0, total: cFlowers.length, phase: 'playing' });
-    const hintTimer = setTimeout(() => setShowHint(false), 4500);
+    const hintTimer = setTimeout(() => setShowHint(false), 7000);
 
     onInteractTriggerRef.current = (payload: OverlayState) => setOverlay(payload);
 
@@ -828,12 +863,13 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
         if (Math.abs(p.vx) < 0.08) p.vx = 0;
       }
 
-      // Jump
+      // Jump (normal no chão + pulo duplo no ar)
       const jumpPressed = jump && !p.jumpHeld;
       if (jumpPressed && p.onGround) {
         p.vy = JUMP_FORCE;
         p.onGround = false;
         p.jumpHeld = true;
+        p.canDoubleJump = true; // libera o segundo pulo após sair do chão
         for (let i = 0; i < 7; i++) {
           g.particles.push({
             x: p.x + PLAYER_W / 2, y: p.y + PLAYER_H,
@@ -842,7 +878,20 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
             color: 'rgba(167,139,250,0.8)', size: 3,
           });
         }
-        // Also set touchRef jumpHeld
+        if (t.jump) touchRef.current.jumpHeld = true;
+      } else if (jumpPressed && !p.onGround && p.canDoubleJump) {
+        // Pulo duplo: 75% da altura do primeiro
+        p.vy = JUMP_FORCE * DOUBLE_JUMP_FACTOR;
+        p.jumpHeld = true;
+        p.canDoubleJump = false;
+        for (let i = 0; i < 4; i++) {
+          g.particles.push({
+            x: p.x + PLAYER_W / 2, y: p.y + PLAYER_H / 2,
+            vx: (Math.random() - 0.5) * 1.5, vy: -Math.random() * 1.2,
+            life: 16, max: 16,
+            color: 'rgba(167,139,250,0.7)', size: 2,
+          });
+        }
         if (t.jump) touchRef.current.jumpHeld = true;
       }
       if (!jump) { p.jumpHeld = false; touchRef.current.jumpHeld = false; }
@@ -872,6 +921,7 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
           p.y = plat.y - PLAYER_H;
           p.vy = 0;
           p.onGround = true;
+          p.canDoubleJump = true; // ao tocar o chão, recupera o pulo duplo
         }
         if (!plat.isGround && p.vy < 0) {
           const prevTop = p.y - p.vy * dt;
@@ -1290,9 +1340,9 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
       {/* Controls hint */}
       {showHint && (
         <div className="controls-hint">
-          <div className="hint-row">← → / A D &nbsp; para mover</div>
-          <div className="hint-row">↑ / W / Espaço &nbsp; para pular</div>
-          <div className="hint-row">{mobileControls ? 'Toque no item para interagir' : 'E &nbsp; para interagir com itens'}</div>
+          <div className="hint-row">← → / A D{' \u00A0 '}para mover</div>
+          <div className="hint-row">↑ / W / Espaço{' \u00A0 '}para pular. <br /> O jogo possui um pulo duplo, que pode ser utilizado pressionando a tecla de pulo duas vezes.</div>
+          <div className="hint-row">{mobileControls ? 'Toque no item para interagir' : 'E \u00A0 para interagir com itens'}</div>
           <div className="hint-row" style={{ color: '#a78bfa', marginTop: 4 }}>
             Colete todas as flores dama-da-noite ✿
           </div>
@@ -1327,22 +1377,32 @@ export function GameScene({ onBackToMenu, volume, mobileControls }: Props) {
         </div>
       )}
 
-      {/* Completion screen */}
+      {/* Completion screen: vídeo ocupa a maior parte da tela, texto por cima */}
       {ui.phase === 'complete' && (
-        <div className="completion-overlay">
-          <div className="completion-box">
-            <div className="completion-stars">✨ ✨ ✨</div>
-            <h2 className="completion-title">Campo Iluminado!</h2>
-            <p className="completion-sub">
-              Você coletou todas as {ui.total} flores dama-da-noite
-            </p>
-            <p className="completion-sub" style={{ marginBottom: 0 }}>
-              O campo brilha novamente! ✨
-            </p>
-            <button className="completion-btn" onClick={onBackToMenu}
-              style={{ marginTop: 32 }}>
-              ← Voltar ao Menu
-            </button>
+        <div className="completion-overlay completion-with-video">
+          <div className="completion-video-container">
+            <video
+              ref={completionVideoRef}
+              className="completion-video"
+              src="/VideoFinal.mp4"
+              autoPlay
+              loop
+              playsInline
+            />
+            <div className="completion-video-text-overlay" aria-hidden />
+            <div className="completion-credits-wrap">
+              <p className="completion-credits-text">
+                {COMPLETION_MESSAGE.slice(0, completionVisibleChars)}
+                {completionVisibleChars < COMPLETION_MESSAGE.length && (
+                  <span className="completion-cursor">|</span>
+                )}
+              </p>
+              {completionVisibleChars >= COMPLETION_MESSAGE.length && (
+                <button type="button" className="completion-btn completion-btn-bottom" onClick={onBackToMenu}>
+                  ← Voltar ao Menu
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

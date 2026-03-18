@@ -100,7 +100,7 @@
   text-align: center;
   z-index: 10;
   pointer-events: none;
-  animation: hintFadeOut 1s ease-in-out 4s forwards;
+  animation: hintFadeOut 1s ease-in-out 6s forwards;
 }
 
 
@@ -190,6 +190,111 @@
   background: rgba(7, 3, 26, 0.7);
   z-index: 30;
   animation: overlayIn 0.8s ease-out;
+}
+
+/* Tela de conclusão: vídeo ocupa a maior parte da tela, texto por cima */
+.completion-with-video {
+  background: #000;
+  padding: 12px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Container do vídeo = maior parte da tela */
+.completion-video-container {
+  position: relative;
+  width: min(98vw, 1680px);
+  height: min(92vh, 940px);
+  max-width: 98vw;
+  max-height: 92vh;
+  background: #000;
+  border: 4px solid #7c3aed;
+  box-shadow:
+    0 0 40px rgba(124, 58, 237, 0.4),
+    0 0 80px rgba(124, 58, 237, 0.2),
+    inset 0 0 24px rgba(124, 58, 237, 0.06);
+  overflow: hidden;
+  border-radius: 6px;
+  animation: boxPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.completion-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Sombra bem leve em cima do vídeo para o texto ficar legível */
+.completion-video-text-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.15) 30%,
+    rgba(0, 0, 0, 0.12) 70%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  pointer-events: none;
+}
+
+/* Texto por cima do vídeo (e da sombra) */
+.completion-credits-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px 56px;
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.completion-credits-wrap .completion-btn-bottom {
+  pointer-events: auto;
+}
+
+.completion-credits-text {
+  color: #f4f1de;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(15px, 2.8vw, 22px);
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.95),
+    0 0 24px rgba(255, 255, 255, 0.6),
+    0 0 36px rgba(255, 255, 255, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+  margin: 0 auto 32px;
+  max-width: min(680px, 90%);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.completion-cursor {
+  display: inline-block;
+  animation: completionBlink 0.8s step-end infinite;
+  margin-left: 2px;
+  color: #e8d5f0;
+}
+
+@keyframes completionBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.completion-btn-bottom {
+  margin-top: 24px;
+  flex-shrink: 0;
 }
 
 @keyframes overlayIn {
